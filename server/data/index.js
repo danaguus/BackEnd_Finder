@@ -8,10 +8,15 @@ module.exports = {
                     res.end()
                 break;
             case 'getData':
-                    let objFilter = req.body.userFilters
-                    await new DataManager().getFilterData(objFilter)
+                    await new DataManager().getFilterData(req.body.userFilters)
                                             .then( result => {res.json(result)})
-                                            .catch( exc => {res.send("No se encontró información")})
+                                            .catch( exc => { console.log(exc); res.send("No se encontró información")})
+                    res.end()
+                break;
+            case 'getField':
+                    await new DataManager().getField(req.body.field, req.body.sortedField)
+                                            .then( result => { res.json(result) } )
+                                            .catch( exc => { console.log(exc); res.send(exc) } )
                     res.end()
                 break;
             default:

@@ -1,7 +1,10 @@
+const FALLA = "-1"
+const NOTFOUND = "0"
+
 let fs      = require('fs')
 let promise = require('es6-promise').Promise
 
-let getNumberValue = (data) => {
+let _getNumberValue = (data) => {
     return parseInt(data.toString().replace("$", "")
                                    .replace(",", ""))
 }
@@ -10,38 +13,29 @@ let _FilterData = (jsonData, prop, value, twoValue = undefined) => {
         try {
             var jsonResult = undefined
             let resolving = (_current, _key, _value, _element, _twoValue = undefined) => {
-                if ( ( _key == _value && _twoValue == undefined ) || ( _key >= _value && _key <= _twoValue ) ) {
+                if ( ( _key == _value && _twoValue == undefined ) || 
+                     ( _getNumberValue(_key) >= _getNumberValue(_value) && _getNumberValue(_key) <= _getNumberValue(_twoValue) ) 
+                    ) {
                     if ( _current == undefined ) { _current = "[" }
                     else { _current = _current + "," }
                     return _current + JSON.stringify(_element)
                 } else return _current
             }
-            
-            for (let index = 0; index < jsonData.length; index++) {
-                const element = jsonData[index];
-                switch(prop) {
-                    case "city":
-                        jsonResult = resolving(jsonResult, element.Ciudad, value, element)
-                        break;
-                    case "type":
-                        jsonResult = resolving(jsonResult, element.Tipo, value, element)
-                        break;
-                    case "price":
-                        jsonResult = resolving(jsonResult, getNumberValue(element.Precio), getNumberValue(value), element, getNumberValue(twoValue))
-                        break;
-                    default:
-                        reject("property not found")
-                        break;
-                }
-            }
-            jsonResult =  ( jsonResult == undefined ) ? "-1" : JSON.parse(jsonResult + "]")
+
+            jsonData.forEach(element => {
+                if (element.hasOwnProperty(prop)){
+                    jsonResult = resolving(jsonResult, element[prop], value, element, twoValue)
+                } else reject("property not found")
+            })
+
+            jsonResult =  ( jsonResult == undefined ) ? FALLA : JSON.parse(jsonResult + "]")
             resolve(jsonResult)
         } catch (exc) { reject(exc) }
     })
 }
 
 class DataManager {
-    constructor() { console.clear() }
+    constructor() {  }
 
     getData() {
         let path = (__dirname + "\\data.json")
@@ -53,38 +47,56 @@ class DataManager {
             })
         })
     }
-
     getFilterData(objFilter) {
         return new promise( async (resolve, reject) => {
             let resultData = await this.getData()
-            if ( resultData == "-1" ) reject("-1")
+            if ( resultData == FALLA ) reject(FALLA)
             resultData = JSON.parse(resultData)
             let hasError = false
 
             try {
                 if(objFilter != undefined) {
                     if(objFilter.city != undefined && !hasError) {
-                        resultData = await _FilterData(resultData, "city", objFilter.city)
-                        hasError = ( resultData == "-1" )
+                        resultData = await _FilterData(resultData, "Ciudad", objFilter.city)
+                        hasError = ( resultData == FALLA )
                     }
 
                     if(objFilter.type != undefined && !hasError) {
-                        resultData = await _FilterData(resultData, "type", objFilter.type)
-                        hasError = ( resultData == "-1" )
+                        resultData = await _FilterData(resultData, "Tipo", objFilter.type)
+                        hasError = ( resultData == FALLA )
                     }
 
                     if (( objFilter.startPrice != undefined && objFilter.endPrice != undefined ) && !hasError ) {
-                        resultData = await _FilterData(resultData, "price", objFilter.startPrice, objFilter.endPrice)
-                        hasError = ( resultData == "-1" )
+                        resultData = await _FilterData(resultData, "Precio", objFilter.startPrice, objFilter.endPrice)
+                        hasError = ( resultData == FALLA )
                     }
                 }
             } catch (error) {
-                console.log("getFilterData -> ", error)
+                console.log(`getFilterData -> ${error}`)
                 hasError = true
             } finally {
-                if (hasError) reject("-1")
+                if (hasError) reject(FALLA)
                 else resolve(resultData)
             }
+        })
+    }
+    getField(field, sorted = false) {
+        return new promise( async (resolve, reject) => {
+            let fullData = await this.getData()
+            if ( fullData == FALLA ) reject(FALLA)
+
+            fullData = JSON.parse(fullData)
+            if ( fullData[0].hasOwnProperty(field) ) {
+                let result = fullData.reduce((a, d) => {
+                    if (a.indexOf(d[field]) === -1) {
+                      a.push(d[field])
+                    }
+                    return a
+                 }, [])
+
+                if(sorted) result.sort()
+                resolve((result.length == 0 ? NOTFOUND : result))
+            } else reject(`Property ${field} not found in the json file`)
         })
     }
 }

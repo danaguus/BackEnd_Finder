@@ -9,8 +9,10 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))
 app.use(express.static("public"))
 
-app.get("/", (req, res) => { return handler.getHandler("index", req, res) })
+//** Asignación de enrutadores de las peticiones */
+app.get("/",        (req, res) => { return handler.getHandler("index", req, res) })
 app.get("/getData", (req, res) => { return handler.getHandler("getData", req, res) })
+app.get("/getField", (req, res) => { return handler.getHandler("getField", req, res) })
 
 require("http")
  .createServer(app)
