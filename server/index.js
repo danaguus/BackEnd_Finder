@@ -4,7 +4,7 @@ var bodyParser 	= require ("body-parser")
 var handler     = require("./data/index.js")
 const helmet    = require('helmet')
 
-var PORT = port = process.env.PORT || 8082
+var PORT = port = process.env.PORT || 3030
 
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: true}))

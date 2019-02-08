@@ -61,8 +61,8 @@ let buildInformationPanel = async () => {
   $(".lista>*").remove()
   $(".progressing").show()
   let userFilters = {
-    city: $("#ciudad").val() == null ? undefined : $("#ciudad").val(),
-    type: $("#tipo").val() == null ? undefined : $("#tipo").val(),
+    city: $("#ciudad").val() == '' ? undefined : $("#ciudad").val(),
+    type: $("#tipo").val() == '' ? undefined : $("#tipo").val(),
     startPrice: $("#rangoPrecio").val().split(";")[0],
     endPrice: $("#rangoPrecio").val().split(";")[1]
   }
