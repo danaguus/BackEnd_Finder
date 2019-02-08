@@ -35,7 +35,7 @@ let _FilterData = (jsonData, prop, value, twoValue = undefined) => {
 }
 
 class DataManager {
-    constructor() {  }
+    constructor() { }
 
     getData() {
         let path = (__dirname + "\\data.json")
